@@ -10,6 +10,9 @@
  */
 final class IOHandler
 {
+
+	private $errParam = 1;
+
 	/**
 	 *	Returns a line from standard input
 	 *	@return string|$return
@@ -60,14 +63,47 @@ final class IOHandler
 
 		var_dump($options);
 
-		if(array_key_exists("help", $options) && count($options) != 1)
+		// check for anything that follows or precedes "help" option. If such a thing is present, then error & return value shall be generated
+		if(array_key_exists("help", $options))
 		{
-			$this->writeStdout("Help obsazeno, ale dalsi taky. Error!\n");
+			if(count($options) != 1)
+			{
+				$this->writeStdout("Help can't be used in combination with any other parameter. Generating return value: 1.\n");
+				$this->terminateProgram($this->errParam);	// generating return value 1
+			}
+
+			// HELP PRITOMEN ZDE
+
+		}
+
+
+		// check for "input" && "nosubdir" used at once, so we can generate error
+		if(array_key_exists("input", $options) && array_key_exists("nosubdir", $options))
+		{
+			$this->writeStdout("Param 'input' and 'nosubdir' can not be used at once! Generating return value: 1.\n");
+			$this->terminateProgram($this->errParam);
 		}
 		else
 		{
-			$this->writeStdout("Only help obsazeno! Good!\n");
+			$this->writeStdout("Input a subdir nepouzito naraz!\n");
 		}
+
+		// let's check for switches if there's only one of those: "k", "o", "i", "w", "c" | this also checks if the "w" has a value
+		$koiwcArr = array(
+			array_key_exists("k", $options),
+			array_key_exists("o", $options),
+			array_key_exists("i", $options),
+			array_key_exists("w", $options),
+			array_key_exists("c", $options)
+			);
+
+		if(array_sum($koiwcArr) != 1)	// if the sum of koiwcArr is not equal to one we have more than one param of this type used, or less than one => we generate error
+		{
+		
+			$this->writeStdout("No or more than one param of the group 'koiwc' is used! Generating return value: 1.\n");	// know error with "-nosubdir" right here.
+			$this->terminateProgram($this->errParam);
+		}
+
 
 
 
@@ -81,7 +117,11 @@ final class IOHandler
 	{
 		$shortOpts = "";
 		$shortOpts .= "w:";
-		$shortOpts .= "koicp";
+		$shortOpts .= "k";
+		$shortOpts .= "o";
+		$shortOpts .= "i";
+		$shortOpts .= "c";
+		$shortOpts .= "p";
 
 		$longOpts = array(
 			"input:",
@@ -94,9 +134,8 @@ final class IOHandler
 		return $options;
 	}
 
-	private function terminateProgram($errno, $message)
+	private function terminateProgram($errno)
 	{
-		$this->writeStderr($message);
 		exit($errno);
 		// IN PROGRESS - constants for different return values required
 	}
