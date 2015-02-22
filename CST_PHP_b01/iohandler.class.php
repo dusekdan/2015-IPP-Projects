@@ -11,7 +11,20 @@
 final class IOHandler
 {
 
-	private $errParam = 1;
+	const errOk = 0;
+	const errParam = 1;
+
+	private $program;
+
+	/**
+	 * Constructor - loading pointer to cstProgram object to a 'program' property
+	 * @return void
+	 */
+
+	public function __construct($cstProgramPtr)
+	{
+		$this->program = $cstProgramPtr;
+	}
 
 	/**
 	 *	Returns a line from standard input
@@ -58,10 +71,8 @@ final class IOHandler
 		
 		if(!is_array($options))
 		{
-			$this->terminateProgram(666, "You're trying to abuse this method and you shall be terminated. I am sorry.\n");
+			$this->program->terminateProgram(666);	// CHANGE ERROR CODE
 		}
-
-		var_dump($options);
 
 		// check for anything that follows or precedes "help" option. If such a thing is present, then error & return value shall be generated
 		if(array_key_exists("help", $options))
@@ -69,23 +80,31 @@ final class IOHandler
 			if(count($options) != 1)
 			{
 				$this->writeStdout("Help can't be used in combination with any other parameter. Generating return value: 1.\n");
-				$this->terminateProgram($this->errParam);	// generating return value 1
+				$this->program->terminateProgram(self::errParam);	// generating return value 1
 			}
 
-			// HELP PRITOMEN ZDE
-
+			//$this->program->showHelp();
+			$this->program->propertySetter("showHelpB", true);
+			return true;
 		}
 
 
-		// check for "input" && "nosubdir" used at once, so we can generate error
+		// check for "input" && "nosubdir" used at once -> if they are, we need to check if the input is a single file or a directory; if it is a file, we have to generate an error
 		if(array_key_exists("input", $options) && array_key_exists("nosubdir", $options))
 		{
-			$this->writeStdout("Param 'input' and 'nosubdir' can not be used at once! Generating return value: 1.\n");
-			$this->terminateProgram($this->errParam);
+			if(is_file($options["input"]))
+			{
+				$this->writeStdout("Param 'input' and 'nosubdir' can not be used at once, if input specifies a file! Generating return value: 1.\n");
+				$this->program->terminateProgram(self::errParam);
+			}
 		}
 		else
 		{
-			$this->writeStdout("Input a subdir nepouzito naraz!\n");
+			// in case that input switch is not present, we will have to read from standard input, therefore I add "input" key to the array $options pointed to standard input file
+			if(!array_key_exists("input", $options))
+			{
+				$options["input"] = "php://stdin";
+			}			
 		}
 
 		// let's check for switches if there's only one of those: "k", "o", "i", "w", "c" | this also checks if the "w" has a value
@@ -101,12 +120,13 @@ final class IOHandler
 		{
 		
 			$this->writeStdout("No or more than one param of the group 'koiwc' is used! Generating return value: 1.\n");	// know error with "-nosubdir" right here.
-			$this->terminateProgram($this->errParam);
+			$this->program->terminateProgram(self::errParam);
 		}
 
 
-
-
+		// NOW WE HAVE ALL SWITCHES CHECKED AND WE PROCEED TO PROCESSING THEM
+			// since processing parameters is the "program part", I will just pass parameters to the class responsible for functionality of a program
+		$this->program->propertySetter("options", $options);
 	}
 
 	/**
@@ -132,12 +152,6 @@ final class IOHandler
 
 		$options = getopt($shortOpts, $longOpts);
 		return $options;
-	}
-
-	private function terminateProgram($errno)
-	{
-		exit($errno);
-		// IN PROGRESS - constants for different return values required
 	}
 }
 ?>
