@@ -2,6 +2,7 @@
 final class cstFilter
 {
 	private $iohandler;
+	private $inputFileArray = array();
 
 	public function __construct($IOHandlerPtr)
 	{
@@ -35,7 +36,7 @@ final class cstFilter
 		}
 
 		// if input does not exist (is not given), filtr assumes that input will come from stdin
-		if(!(array_key_exists("input", $options))
+		if(!array_key_exists("input", $options))
 		{
 			$options["input"] = "php://stdin";
 		}
@@ -48,32 +49,119 @@ final class cstFilter
 
 		// here will come work for each switch separatively
 
+		// input & nosubdir
+		if(is_dir($options["input"]))
+		{
+			if(!array_key_exists("nosubdir", $options))
+			{
+				$this->recDirLookup($options["input"]);
+				foreach($this->inputFileArray as $item)
+				{
+					echo $item."\n";
+				}
+			}
+			else
+			{
+				$this->dirLookup($options["input"]);
+				foreach($this->inputFileArray as $item)
+				{
+					echo $item."\n";
+				}	
+			}
+		}
+
+		// handling "w param"
+		if(array_key_exists("w", $options))	// thanks to briliant getopts, if it's passed like "-w --nosubdir" - which is incorect format by the way, it is considered -w with value "--nosubdir" which happens to be a problem
+		{
+			if(!empty($options["w"]))
+			{
+				$pattern = $options["w"];
+				foreach($this->inputFileArray as $item)
+				{
+					$fileContent = $this->iohandler->safelyGetFileContents($item);
+					echo $this->preg_match_count("/$options[w]/", $fileContent). "\\|/\n";
+				}
+
+			}
+			else
+			{
+				$this->iohandler->writeStderr("Empty value for -w switch!\n");
+				$this->iohandler->terminateProgram(errParams);
+			}
+		}
+
+
 
 
 	}
 
 
-	public function recDirLookup($dir)
+	private function preg_match_count($pattern, $formule)
+	{
+		if(preg_match_all($pattern, $formule, $matches, PREG_PATTERN_ORDER))
+		{
+			return count($matches[0]);
+		}
+		else
+		{
+			return 0;
+		}
+	}
+
+	private function recDirLookup($dir)
 	{
 
     	$folder = scandir($dir);
-    	echo "\n";
     
     	foreach($folder as $ff){
-        	if($ff == '.' || $ff == '..') continue;
+        	if($ff == '.' || $ff == '..')
+        	{
+        		continue;
+        	}
         	else
         	{
 
         		$isItDirOrFile = (is_dir($dir.'/'.$ff))?"DIR":"FILE";
-
-           	 echo "\t".$ff." ($isItDirOrFile)";
-           	 if(is_dir($dir.'/'.$ff)) $this->recDirLookup($dir.'/'.$ff);
-           	 echo "\n";
+				
+				if( $this->getFileExtension($dir.'/'.$ff) == 'c' || $this->getFileExtension($dir.'/'.$ff) == 'h')
+				{        	
+        			$this->inputFileArray[] = $dir.'/'.$ff;
+           	 	}
+           	
+           		if(is_dir($dir.'/'.$ff)) 
+           		{
+           			$this->recDirLookup($dir.'/'.$ff);
+           		}
         	}
     	}
+	}
+
+	private function dirLookup($dir)
+	{
+		$folder = scandir($dir);
     
-    	echo "\n";
-	
+    	foreach($folder as $ff){
+        	if($ff == '.' || $ff == '..' || is_dir($dir.'/'.$ff))
+        	{
+        		continue;
+        	}
+        	else
+        	{
+
+        		$isItDirOrFile = (is_dir($dir.'/'.$ff))?"DIR":"FILE";
+				
+				if( $this->getFileExtension($dir.'/'.$ff) == 'c' || $this->getFileExtension($dir.'/'.$ff) == 'h')
+				{        	
+        			$this->inputFileArray[] = $dir.'/'.$ff;
+           	 	}
+
+        	}
+    	}	
+	}
+
+	private function getFileExtension($fileName)
+	{
+		return pathinfo($fileName, PATHINFO_EXTENSION);
 	}
 
 	private function showHelp()
