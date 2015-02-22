@@ -11,9 +11,16 @@
 final class IOHandler
 {
 
+	private $options;
+
 	/**
-	 *	This method processes parameters and based on which params are given decides 
+	 *	This method returns a value of private property $options to be used 
+	 *	@return array|$options
 	 */
+	public function getOptions()
+	{
+		return $this->options;
+	}
 
 	/**
 	 *	Takes care of incoming parameters - loads them into array which it returns
@@ -57,6 +64,7 @@ final class IOHandler
 				$this->writeStderr("Help can't be used in combination with any other parameter. Generating return value: 1.\n");
 				$this->terminateProgram(errParams);	// generating return value 1
 			}
+			$this->options = $options;
 			return errOk;
 		}
 
@@ -87,7 +95,10 @@ final class IOHandler
 			$this->terminateProgram(errParams);
 		}
 
-		// Now all switches are checked to be used correctly, therefore errOk is returned
+		// Now all switches are checked to be used correctly, therefore property $option is set and errOk is returned
+		
+		$this->options = $options;
+
 		return errOk;
 	}
 
