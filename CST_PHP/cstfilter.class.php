@@ -38,7 +38,7 @@ final class cstFilter
 		// if input does not exist (is not given), filtr assumes that input will come from stdin
 		if(!array_key_exists("input", $options))
 		{
-			$options["input"] = "php://stdin";
+			$options["input"] = ".";
 		}
 
 		// similarly for output
@@ -55,31 +55,33 @@ final class cstFilter
 			if(!array_key_exists("nosubdir", $options))
 			{
 				$this->recDirLookup($options["input"]);
-				foreach($this->inputFileArray as $item)
-				{
-					echo $item."\n";
-				}
 			}
 			else
 			{
 				$this->dirLookup($options["input"]);
-				foreach($this->inputFileArray as $item)
-				{
-					echo $item."\n";
-				}	
 			}
 		}
+
+
+		$bufferCount = 0;
+		$outCount = array();
+		$outFiles = array();
 
 		// handling "w param"
 		if(array_key_exists("w", $options))	// thanks to briliant getopts, if it's passed like "-w --nosubdir" - which is incorect format by the way, it is considered -w with value "--nosubdir" which happens to be a problem
 		{
+			$i = 0;
+
 			if(!empty($options["w"]))
 			{
 				$pattern = $options["w"];
 				foreach($this->inputFileArray as $item)
 				{
 					$fileContent = $this->iohandler->safelyGetFileContents($item);
-					echo $this->preg_match_count("/$options[w]/", $fileContent). "\\|/\n";
+					$outCount[$i] = $this->preg_match_count("/$options[w]/", $fileContent);
+					$outFiles[$i] = realpath($item);	// transforms the relative url (which is most likely to be given by majority of testscripts) to absolute; when url already absolute nothing changes
+					$bufferCount += $outCount[$i];
+					++$i;
 				}
 
 			}
@@ -92,9 +94,33 @@ final class cstFilter
 
 
 
+		// handling "p" param - simple stripping full file path to name only version; this method have to be called after all previous filtering is done
+		if(array_key_exists("p", $options))
+		{
+			$outFiles = $this->getNamesOnlyArray($outFiles);		
+		}
+
+
+
+		
+
+		for($i=0;$i<count($outCount);$i++)
+		{
+			echo "$outFiles[$i] \t $outCount[$i]\n";
+		}
 
 	}
 
+	private function getNamesOnlyArray($files)
+	{
+		$i = 0;
+		foreach($files as $file)
+		{
+			$files[$i] = basename($file);
+			$i++;
+		}
+		return $files;
+	}
 
 	private function preg_match_count($pattern, $formule)
 	{
