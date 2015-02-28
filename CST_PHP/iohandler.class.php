@@ -79,6 +79,15 @@ final class IOHandler
 			}
 		}
 
+		if(array_key_exists("input", $options))
+		{
+			if(!is_file($options["input"]) && !is_dir($options["input"]))
+			{
+				$this->writeStderr("Specified input can not be opened/read.\n");
+				$this->terminateProgram(errInputFile);
+			}
+		}
+
 		// let's check for switches if there's only one of those: "k", "o", "i", "w", "c" | this also checks if the "w" has a value
 		$koiwcArr = array(
 			array_key_exists("k", $options),

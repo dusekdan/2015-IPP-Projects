@@ -3,6 +3,7 @@ final class cstFilter
 {
 	private $iohandler;
 	private $inputFileArray = array();
+	private $comentLetters = 0;
 
 	public function __construct($IOHandlerPtr)
 	{
@@ -61,6 +62,13 @@ final class cstFilter
 				$this->dirLookup($options["input"]);
 			}
 		}
+		else
+		{
+			if(is_file($options["input"]))
+			{
+				$this->inputFileArray[] = $options["input"];
+			}
+		}
 
 
 		$bufferCount = 0;
@@ -82,6 +90,7 @@ final class cstFilter
 					$outFiles[$i] = realpath($item);	// transforms the relative url (which is most likely to be given by majority of testscripts) to absolute; when url already absolute nothing changes
 					$bufferCount += $outCount[$i];
 					++$i;
+					//echo $item.PHP_EOL;
 				}
 
 			}
@@ -92,6 +101,62 @@ final class cstFilter
 			}
 		}
 
+
+		// for any other parametr I need to get rid of macro's and comentarries and strings...
+
+		if(array_key_exists("c", $options))
+		{
+		
+			$i = 0;
+			foreach($this->inputFileArray as $item)
+			{
+
+				$fileContent = $this->iohandler->safelyGetFileContents($item);
+				$this->stripNsave($fileContent);
+				$outCount[$i] = $this->commentLetters;
+				$outFiles[$i] = realpath($item);
+				$bufferCount += $outCount[$i];
+				++$i;
+			}
+
+
+		}	// 88 instead of 89, problem is with commentary at the end
+
+
+
+		if(array_key_exists("k", $options))
+		{
+			$i = 0;
+
+			foreach($this->inputFileArray as $item)
+			{
+				$fileContent = $this->iohandler->safelyGetFileContents($item);
+				$strippedInput = $this->stripNsave($fileContent);
+				$outCount[$i] = $this->preg_match_count("/\b(auto|break|case|char|const|continue|default|do|double|else|enum|extern|float|for|goto|if|int|long|register|return|short|signed|sizeof|static|struct|switch|typedef|union|unsigned|void|volatile|while|_Bool|_Complex|_Imaginary|inline|restrict)\b/", $strippedInput);
+				$outFiles[$i] = realpath($item);
+				$bufferCount += $outCount[$i];
+				++$i;
+			}
+		}
+
+		if(array_key_exists("i", $options))
+		{
+
+			$i = 0;
+
+			foreach($this->inputFileArray as $item)
+			{
+				$fileContent = $this->iohandler->safelyGetFileContents($item);
+				$strippedInput = $this->stripNsave($fileContent);
+				$strippedInput = preg_replace("/\b(auto|break|case|char|const|continue|default|do|double|else|enum|extern|float|for|goto|if|int|long|register|return|short|signed|sizeof|static|struct|switch|typedef|union|unsigned|void|volatile|while|_Bool|_Complex|_Imaginary|inline|restrict)\b/", "", $strippedInput);
+				$outCount[$i] = $this->preg_match_count("/([a-zA-Z]+)([a-zA-Z0-9_]*)/", $strippedInput);
+				$outFiles[$i] = realpath($item);
+				$bufferCount += $outCount[$i];
+				++$i;
+			}
+
+
+		}
 
 
 		// handling "p" param - simple stripping full file path to name only version; this method have to be called after all previous filtering is done
@@ -104,10 +169,236 @@ final class cstFilter
 
 		
 
-		for($i=0;$i<count($outCount);$i++)
+		$this->temp_printData($outFiles, $outCount, $bufferCount);
+
+		/*for($i=0;$i<count($outCount);$i++)
 		{
 			echo "$outFiles[$i] \t $outCount[$i]\n";
+		}*/
+
+		//$this->IOHandlerPtr->printData(); // not ready yet! (dont forget that it has to go TO FILE)
+
+	}
+
+
+	private function stripNsave($fileContent)
+	{
+				// state machine, let's try again
+
+				$actState = "sSTART";
+				$skipB = false;
+				$skipM = false;
+				$skipN = 0;
+
+				$lastLineCheck = false;
+
+				$commentLetters = 0;
+
+				for($i=0; isset($fileContent[$i]); $i++)
+				{
+
+					if($skipB)
+					{
+						$fileContent[$i] = '';
+						$skipB = false;
+						continue;
+					}
+
+					if($skipM)
+					{
+						$fileContent[$i] = '';
+						$skipN--;
+							if($skipN == 0)
+							{
+								$skipM = false;
+							}
+					}
+
+
+					switch($actState)
+					{
+						case "sSTART":
+
+							if($lastLineCheck)
+							{
+								$lastLineCheck = false;
+							}
+
+							if($fileContent[$i] == '#')
+							{
+								$fileContent[$i] = '';
+								$actState = "sMACRO";
+								$skipM = true;
+								$skipN = 6;
+								continue;
+							}
+
+							if($fileContent[$i] == '\'')
+							{
+								$fileContent[$i] = '';
+								$actState = "sCHARLIT";
+								continue;
+							}
+
+							if($fileContent[$i] == '"')
+							{
+								$fileContent[$i] = '';
+								$actState = "sSTRING";
+								continue;
+							}
+
+							if($fileContent[$i] == "/")
+							{
+								if($fileContent[$i+1] == "/")
+								{
+									$fileContent[$i] = '';
+									$actState = "sLINECOMMENT";
+									$skipB = true;
+									$commentLetters += 2;
+									continue;
+								}
+
+								if($fileContent[$i+1] == "*")
+								{
+									$fileContent[$i] = '';
+									$actState = "sBLOCKCOMMENT";
+									$skipB = true;
+									$commentLetters += 2;									
+									continue;
+								}
+							}
+
+						break;
+
+						case "sIDC":	// case I DONT CARE
+
+						break;
+
+						case "sCHARLIT":
+							if($fileContent[$i] == '\'')	// POTENTIONAL ESCAPE HAZARD OVER HERE
+							{
+								$fileContent[$i] = '';
+								$actState = "sSTART";
+							}
+							else
+							{
+								$fileContent[$i] = '';
+							}
+						break;
+
+						case "sSTRING":
+							if($fileContent[$i] == '"')	// POTENTIONAL ESCAPE HAZARD OVER HERE
+							{
+								$fileContent[$i] = '';
+								$actState = "sSTART";
+							}
+							else
+							{
+								$fileContent[$i] = '';
+							}
+						break;
+
+						case "sLINECOMMENT":
+							$commentLetters++;
+							$lastLineCheck = true;
+							if($fileContent[$i] == PHP_EOL)
+							{
+								$actState = "sSTART";
+								$fileContent[$i] = '';
+							}
+							else
+							{
+								$fileContent[$i] = ''; 
+							}
+						break;
+
+						case "sBLOCKCOMMENT":
+							if($fileContent[$i] == '*')
+							{
+								if($fileContent[$i+1] == '/')
+								{
+									$fileContent[$i] = '';
+									$actState = "sSTART";
+									$skipB = true;
+									$commentLetters += 2;
+									continue;
+								}
+								else
+								{
+									$fileContent[$i] = '';
+									$commentLetters++;
+								}
+							}
+							else
+							{
+								$fileContent[$i] = '';
+								$commentLetters++;
+							}
+						break;
+
+						case "sMACRO":
+							if($fileContent[$i] == '\\' && ord($fileContent[$i]) == 10)
+							{
+								$fileContent[$i] = '';
+								$skipB = true;
+								continue;
+							}
+							else
+							{
+								if(ord($fileContent[$i]) == 10)
+								{
+									$fileContent[$i] = '';
+									$actState = "sSTART";
+									continue;
+								}
+								else
+								{
+									$fileContent[$i] = '';
+								}
+							}
+						break;
+					}
+
+
+
+
+				}
+				if($lastLineCheck)
+				{
+					$commentLetters++;
+				}
+				$this->commentLetters = $commentLetters;
+			return $fileContent;
+	}
+
+	private function temp_printData($files, $encounters, $total)
+	{
+		echo "Getting to printing the data out!\n";
+		// first I have to figure out the highest values of length
+		$leftMaxLength = 7;	// THIS NUMBER IS NOT SO MAGIC - from tech specification "CELKEM:" has exactly 7 letters, meaning the minimum max length is this
+		foreach($files as $key)
+		{
+			if(strlen($key) > $leftMaxLength)
+			{
+				$leftMaxLength = strlen($key);
+			}
 		}
+
+		$rightMaxLength = strlen($total);	// the highest value of length for right side will always be the TOTAL count
+		foreach($encounters as $key)
+		{
+			if(strlen($key) > $rightMaxLength)
+			{
+				$rightMaxLength = strlen($key);
+			}
+		}
+
+
+		for($i=0; $i<count($files); $i++)
+		{
+			echo $files[$i].str_repeat(" ", (($leftMaxLength-strlen($files[$i]))+1)).$encounters[$i].PHP_EOL;
+		}
+		echo "CELKEM:".str_repeat(" ", $leftMaxLength-strlen("CELKEM:")+1).$total.PHP_EOL;
 
 	}
 
