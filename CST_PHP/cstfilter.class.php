@@ -136,6 +136,7 @@ final class cstFilter
 				$outFiles[$i] = realpath($item);
 				$bufferCount += $outCount[$i];
 				++$i;
+			//echo $strippedInput;
 			}
 		}
 
@@ -154,10 +155,23 @@ final class cstFilter
 				$bufferCount += $outCount[$i];
 				++$i;
 			}
-
-
 		}
 
+		if(array_key_exists("o", $options))
+		{
+			$i = 0;
+
+			foreach($this->inputFileArray as $item)
+			{
+				$fileContent = $this->iohandler->safelyGetFileContents($item);
+				$strippedInput = $this->stripNsave($fileContent);
+				// now there's only need to count all operators. piece of cake.
+				$outCount[$i] = $this->preg_match_count("/(\=|\+|\-|\*|\/|\%|\<\<|\>\>|\&|\||\^|\&\&|\|\|\|\.|\-\>)/", $strippedInput);
+				$outFiles[$i] = realpath($item);
+				$bufferCount += $outCount[$i];
+				++$i;
+			}
+		}
 
 		// handling "p" param - simple stripping full file path to name only version; this method have to be called after all previous filtering is done
 		if(array_key_exists("p", $options))
@@ -197,6 +211,7 @@ final class cstFilter
 				for($i=0; isset($fileContent[$i]); $i++)
 				{
 
+					//echo $fileContent[$i]."(".ord($fileContent[$i]).")";
 					if($skipB)
 					{
 						$fileContent[$i] = '';
@@ -337,9 +352,10 @@ final class cstFilter
 						break;
 
 						case "sMACRO":
-							if($fileContent[$i] == '\\' && ord($fileContent[$i]) == 10)
+							if($fileContent[$i] == '\\' && ord($fileContent[$i+1]) == 10)
 							{
 								$fileContent[$i] = '';
+								$actState = "sMACRO";
 								$skipB = true;
 								continue;
 							}
