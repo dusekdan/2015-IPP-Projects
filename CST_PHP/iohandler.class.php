@@ -172,10 +172,20 @@ final class IOHandler
 		exit($errno);
 	}
 
+	/**
+	 *	Final version of a method that prints data into a text file or on stdout (throught writeStdout($data))
+	 *	
+	 *	Arrays $files & $encounters are linked to each other, in a $total is stored total number of encounters. Last param $out is a file that specifies where the output of application is put
+	 *
+	 *	@param array|$files
+	 *	@param array|$encounters
+	 *	@param int|$total
+	 *	@param file|$out
+	 */
 	public function printData($files, $encounters, $total, $out)
 	{
-		// first I have to figure out the highest values of length
-		$leftMaxLength = 7;	// THIS NUMBER IS NOT SO MAGIC - from tech specification "CELKEM:" has exactly 7 letters, meaning the minimum max length is this
+		// Figuring out a total number of blank spaces that are required for propper output
+		$leftMaxLength = strlen("CELKEM:");	// Here could be simply a magic number, but it is preffered not to... right?
 		foreach($files as $key)
 		{
 			if(strlen($key) > $leftMaxLength)
@@ -185,38 +195,33 @@ final class IOHandler
 		}
 
 		$rightMaxLength = strlen($total);	// the highest value of length for right side will always be the TOTAL count
-		foreach($encounters as $key)
-		{
-			if(strlen($key) > $rightMaxLength)
-			{
-				$rightMaxLength = strlen($key);
-			}
-		}
 
-		$outString = "";
+		$outString = "";	// inicialization of string variable that we fill later in the method
 
+		// generating standard lines for output
 		for($i=0; $i<count($files); $i++)
 		{
 			$outString .= $files[$i].str_repeat(" ", (($leftMaxLength-strlen($files[$i]))+1)).$encounters[$i].PHP_EOL;
 		}
 
 
-
+		// and adding the last line
 		$outString .= "CELKEM:".str_repeat(" ", $leftMaxLength-strlen("CELKEM:")+1).$total.PHP_EOL;
 	
+		// special case - output has not been specified, therefore it was set to stdout (or it has been specified as stdout, doesn't really matter)
 		if($out == "php://stdout")
 		{
 			$this->writeStdout($outString);
 		}
 		else
 		{
-			iconv_set_encoding("all", "ISO-8859-2");
+			iconv_set_encoding("all", "ISO-8859-2");	// setting encoding before opening the file
 			$file = fopen("$out", "w");
 				if($file === FALSE)
 				{
 					$this->terminateProgram(errOutputFile);
 				}
-			fwrite($file, $outString) or $this->terminateProgram(errOutputFile);
+			fwrite($file, $outString) or $this->terminateProgram(errOutputFile);	// if it is impossible to write to file, kill the application and generate error
 			fclose($file);
 		}
 
