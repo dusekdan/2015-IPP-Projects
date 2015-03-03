@@ -12,19 +12,13 @@ final class cstFilter
 
 	public function Run()
 	{
-		echo "Starting a filter...\n";
-
-
 		$checkParams = $this->iohandler->checkParams();
-		print "Errorcode from checkParams(): ". $checkParams ."\n";
 
 		if($checkParams == errOk)
 		{
 			$options = $this->iohandler->getOptions();
 			$this->processOptions($options);
 		}
-
-		echo "Filter work done...\n";
 	}
 
 	private function processOptions($options)
@@ -43,7 +37,7 @@ final class cstFilter
 		}
 
 		// similarly for output
-		if(!(array_key_exists("ouput", $options)))
+		if(!(array_key_exists("output", $options)))
 		{
 			$options["output"] = "php://stdout";
 		}
@@ -90,7 +84,6 @@ final class cstFilter
 					$outFiles[$i] = realpath($item);	// transforms the relative url (which is most likely to be given by majority of testscripts) to absolute; when url already absolute nothing changes
 					$bufferCount += $outCount[$i];
 					++$i;
-					//echo $item.PHP_EOL;
 				}
 
 			}
@@ -136,7 +129,6 @@ final class cstFilter
 				$outFiles[$i] = realpath($item);
 				$bufferCount += $outCount[$i];
 				++$i;
-			//echo $strippedInput;
 			}
 		}
 
@@ -165,8 +157,45 @@ final class cstFilter
 			{
 				$fileContent = $this->iohandler->safelyGetFileContents($item);
 				$strippedInput = $this->stripNsave($fileContent);
-				// now there's only need to count all operators. piece of cake.
-				$outCount[$i] = $this->preg_match_count("/(\=|\+|\-|\*|\/|\%|\<\<|\>\>|\&|\||\^|\&\&|\|\|\|\.|\-\>)/", $strippedInput);
+				$strippedInput = str_replace("...", "", $strippedInput);
+				// now there's only need to count all operators. 
+
+
+				$complexRegexpRMV = "/";
+				$complexRegexpRMV .= "char(\s*)\*+(\s*)([a-zA-Z]+)([a-zA-Z0-9_]*)";
+				$complexRegexpRMV .= "|";
+				$complexRegexpRMV .= "short(\s*)\*+(\s*)([a-zA-Z]+)([a-zA-Z0-9_]*)";
+				$complexRegexpRMV .= "|";
+				$complexRegexpRMV .= "int(\s*)\*+(\s*)([a-zA-Z]+)([a-zA-Z0-9_]*)";
+				$complexRegexpRMV .= "|";
+				$complexRegexpRMV .= "unsigned(\s*)\*+(\s*)([a-zA-Z]+)([a-zA-Z0-9_]*)";
+				$complexRegexpRMV .= "|";
+				$complexRegexpRMV .= "long(\s*)\*+(\s*)([a-zA-Z]+)([a-zA-Z0-9_]*)";
+				$complexRegexpRMV .= "|";
+				$complexRegexpRMV .= "float(\s*)\*+(\s*)([a-zA-Z]+)([a-zA-Z0-9_]*)";
+				$complexRegexpRMV .= "|";
+				$complexRegexpRMV .= "double(\s*)\*+(\s*)([a-zA-Z]+)([a-zA-Z0-9_]*)";
+				$complexRegexpRMV .= "/";
+
+				$strippedInput = preg_replace($complexRegexpRMV, "", $strippedInput);
+
+				$removeNumberCNST = "/";
+				$removeNumberCNST .= "[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?";
+				$removeNumberCNST .= "/";
+
+				$strippedInput = preg_replace($removeNumberCNST, "", $strippedInput);
+
+				$complexRegexp = "/";
+				$complexRegexp .= "\<\<\=|\>\>\=";
+				$complexRegexp .= "|";
+				$complexRegexp .= "\+\+|\-\-|\+\=|\-=|\*\=|\/\=|\%\=|\<\=|\>\=|\=\=|\!\=|\&\&|\|\||\<\<|\>\>|\&\=|\|\=|\^\=|\-\>";
+				$complexRegexp .= "|";
+				$complexRegexp .= "\+|\-|\*|\/|\%|\<|\>|\!|\~|\&|\||\^|\=|\.";
+				$complexRegexp .= "/";
+
+				$outCount[$i] = $this->preg_match_count($complexRegexp, $strippedInput);
+
+
 				$outFiles[$i] = realpath($item);
 				$bufferCount += $outCount[$i];
 				++$i;
@@ -179,19 +208,11 @@ final class cstFilter
 			$outFiles = $this->getNamesOnlyArray($outFiles);		
 		}
 
-
-
 		
+		// some sort would be nice
 
-		$this->temp_printData($outFiles, $outCount, $bufferCount);
 
-		/*for($i=0;$i<count($outCount);$i++)
-		{
-			echo "$outFiles[$i] \t $outCount[$i]\n";
-		}*/
-
-		//$this->IOHandlerPtr->printData(); // not ready yet! (dont forget that it has to go TO FILE)
-
+		$this->iohandler->printData($outFiles, $outCount, $bufferCount, $options["output"]);
 	}
 
 
@@ -210,8 +231,6 @@ final class cstFilter
 
 				for($i=0; isset($fileContent[$i]); $i++)
 				{
-
-					//echo $fileContent[$i]."(".ord($fileContent[$i]).")";
 					if($skipB)
 					{
 						$fileContent[$i] = '';
@@ -387,37 +406,6 @@ final class cstFilter
 			return $fileContent;
 	}
 
-	private function temp_printData($files, $encounters, $total)
-	{
-		echo "Getting to printing the data out!\n";
-		// first I have to figure out the highest values of length
-		$leftMaxLength = 7;	// THIS NUMBER IS NOT SO MAGIC - from tech specification "CELKEM:" has exactly 7 letters, meaning the minimum max length is this
-		foreach($files as $key)
-		{
-			if(strlen($key) > $leftMaxLength)
-			{
-				$leftMaxLength = strlen($key);
-			}
-		}
-
-		$rightMaxLength = strlen($total);	// the highest value of length for right side will always be the TOTAL count
-		foreach($encounters as $key)
-		{
-			if(strlen($key) > $rightMaxLength)
-			{
-				$rightMaxLength = strlen($key);
-			}
-		}
-
-
-		for($i=0; $i<count($files); $i++)
-		{
-			echo $files[$i].str_repeat(" ", (($leftMaxLength-strlen($files[$i]))+1)).$encounters[$i].PHP_EOL;
-		}
-		echo "CELKEM:".str_repeat(" ", $leftMaxLength-strlen("CELKEM:")+1).$total.PHP_EOL;
-
-	}
-
 	private function getNamesOnlyArray($files)
 	{
 		$i = 0;
@@ -499,9 +487,9 @@ final class cstFilter
 
 	private function showHelp()
 	{
-		print("Program:\n\t cst.php\n");
-		print("Author:\n\t Daniel Dusek (xdusek21) <dusekdan@gmail.com>\n");
-		print(
+		$this->iohandler->writeStdout("Program:\n\t cst.php\n");
+		$this->iohandler->writeStdout("Author:\n\t Daniel Dusek (xdusek21) <dusekdan@gmail.com>\n");
+		$this->iohandler->writeStdout(
 				"Usage:\n\t php cst.php -k|-w=pattern|-c|-o|-i|--help [--input=fileordir|--nosubdir] [--output=file] [-p]\n \n" .
 				"Parameters:\n\n" . 
 				"\t--help \t \t \t Shows help on screen.\n\n" .

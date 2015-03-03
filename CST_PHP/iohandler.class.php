@@ -171,4 +171,54 @@ final class IOHandler
 	{
 		exit($errno);
 	}
+
+	public function printData($files, $encounters, $total, $out)
+	{
+		// first I have to figure out the highest values of length
+		$leftMaxLength = 7;	// THIS NUMBER IS NOT SO MAGIC - from tech specification "CELKEM:" has exactly 7 letters, meaning the minimum max length is this
+		foreach($files as $key)
+		{
+			if(strlen($key) > $leftMaxLength)
+			{
+				$leftMaxLength = strlen($key);
+			}
+		}
+
+		$rightMaxLength = strlen($total);	// the highest value of length for right side will always be the TOTAL count
+		foreach($encounters as $key)
+		{
+			if(strlen($key) > $rightMaxLength)
+			{
+				$rightMaxLength = strlen($key);
+			}
+		}
+
+		$outString = "";
+
+		for($i=0; $i<count($files); $i++)
+		{
+			$outString .= $files[$i].str_repeat(" ", (($leftMaxLength-strlen($files[$i]))+1)).$encounters[$i].PHP_EOL;
+		}
+
+
+
+		$outString .= "CELKEM:".str_repeat(" ", $leftMaxLength-strlen("CELKEM:")+1).$total.PHP_EOL;
+	
+		if($out == "php://stdout")
+		{
+			$this->writeStdout($outString);
+		}
+		else
+		{
+			iconv_set_encoding("all", "ISO-8859-2");
+			$file = fopen("$out", "w");
+				if($file === FALSE)
+				{
+					$this->terminateProgram(errOutputFile);
+				}
+			fwrite($file, $outString) or $this->terminateProgram(errOutputFile);
+			fclose($file);
+		}
+
+	}
 }
