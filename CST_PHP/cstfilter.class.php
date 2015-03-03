@@ -210,6 +210,7 @@ final class cstFilter
 
 		
 		// some sort would be nice
+		array_multisort($outFiles, $outCount);
 
 
 		$this->iohandler->printData($outFiles, $outCount, $bufferCount, $options["output"]);
