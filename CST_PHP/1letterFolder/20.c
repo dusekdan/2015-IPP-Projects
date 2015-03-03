@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include "subdir/file.h"
 
-#define STRUCT_PTR struct {int i;} *
+#define STRUCT_PTR struct {int i;} * \
+if
 
 // This function does nothing useful.
 int func(int i, ...) {
