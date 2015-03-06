@@ -201,7 +201,7 @@ final class IOHandler
 		// generating standard lines for output
 		for($i=0; $i<count($files); $i++)
 		{
-			$outString .= $files[$i].str_repeat(" ", (($leftMaxLength-strlen($files[$i]))+1)).$encounters[$i].PHP_EOL;
+			$outString .= $files[$i].str_repeat(" ", (($leftMaxLength-strlen($files[$i]))+1)).str_repeat(" ", ($rightMaxLength-strlen($encounters[$i]))).$encounters[$i].PHP_EOL;
 		}
 
 
