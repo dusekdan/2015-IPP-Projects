@@ -1,1 +1,0 @@
-PHP Warning:  fopen(/hopefully-no-write-permissions): failed to open stream: Permission denied in /home/dan/Desktop/gitProjects/IPP-Project/CST_PHP/iohandler.class.php on line 219
