@@ -180,7 +180,7 @@ final class cstFilter
 				$strippedInput = preg_replace($complexRegexpRMV, "", $strippedInput);
 
 				$removeNumberCNST = "/";
-				$removeNumberCNST .= "[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?";
+				$removeNumberCNST .= "[-+]?[0-9]*\.{1}[0-9]+([eE][-+]?[0-9]+)?";
 				$removeNumberCNST .= "/";
 
 				$strippedInput = preg_replace($removeNumberCNST, "", $strippedInput);
