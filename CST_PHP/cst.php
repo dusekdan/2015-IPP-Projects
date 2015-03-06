@@ -1,4 +1,7 @@
 <?php 
+/*
+ *	#CST:xdusek21
+ */
 error_reporting(E_ALL);
 include("./error.consts.php");
 include("./iohandler.class.php");
