@@ -89,7 +89,7 @@ final class cstFilter
 			}
 			else
 			{
-				$this->iohandler->writeStderr("Empty value for -w switch!\n");
+				//$this->iohandler->writeStderr("Empty value for -w switch!\n");
 				$this->iohandler->terminateProgram(errParams);
 			}
 		}
@@ -399,10 +399,10 @@ final class cstFilter
 
 
 				}
-				if($lastLineCheck)
+				/*if($lastLineCheck)
 				{
-					$commentLetters++;
-				}
+					//$commentLetters++;
+				}*/
 				$this->commentLetters = $commentLetters;
 			return $fileContent;
 	}
