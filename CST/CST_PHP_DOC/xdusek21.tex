@@ -1,0 +1,84 @@
+\documentclass[10pt, a4paper]{report}
+\usepackage[left=2cm,text={17cm, 24cm},top=3cm]{geometry}
+\usepackage{times}
+
+\linespread{1.3}
+\vspace*{-2cm}
+
+
+\begin{document}
+\noindent{\fontsize{12pt}{1.3}\selectfont Task documentation CST: \textbf{C Stats in PHP 5} for IPP 2014/2015\\Name and surname: \textbf{Daniel Dusek}\\Login: \textbf{xdusek21}}
+
+\vspace{0.5cm}
+	\par \fontsize{10pt}{1.3}\selectfont Whole script is written with maximal usage of object-oriented-programming version of PHP. OOP version of PHP is used because of its advantages such are encapsulation or possibility to re-use the code. And of course, from symbolic reasons - course is named Principles of Programming Languages (and OOP).
+
+\vspace{0.5cm}
+\par\noindent\fontsize{12pt}{1.3}\selectfont\textbf{Object Oriented Design of CST filter}
+	
+	\vspace{0.15cm}
+	\par \fontsize{10pt}{1.3}\selectfont The CST filter is realized with a help of two classes - \verb|IOHandler()| and \verb|cstFilter()|. Neither of two classes inherits from another, but class \verb|cstFilter()| uses public methods provided by \verb|IOHandler()| class on several ocassions. 
+
+	\vspace{0.35cm}
+	\par\noindent\fontsize{11pt}{1.3}\selectfont\textbf{Class IOHandler()}
+	\vspace{0.15cm}
+	\par \fontsize{10pt}{1.3}\selectfont As the name almost suggests, this class is resposinble for all input and output communication and handling. Methods contained in the class covers all work with input and output starting with showing the help, going through loading input file, ending with writting to stdErr and terminating filter with return code.
+
+	\vspace{0.35cm}
+	\par\noindent\fontsize{11pt}{1.3}\selectfont\textbf{Class cstFilter()}
+	\vspace{0.15cm}
+	\par \fontsize{10pt}{1.3}\selectfont Public methods of the class are used by cst.php script that is executed when running the filter. Main method here is named Run() and basically Runs the filter, using classes's private methods. Checking if given parameters can be used is covered in this class, so is every other method that filters input.
+
+\vspace{0.5cm}
+\par\noindent\fontsize{12pt}{1.3}\selectfont\textbf{Parameter processing}
+
+	\vspace{0.15cm}
+	\par\fontsize{10pt}{1.3}\selectfont{
+	All input parameters are processed with php library function \verb|getopt()| designed specifically for this task. Despite the fact the function has its weak spots, for the purposes of this project it was the only logical choice.
+	}
+
+\vspace{0.5cm}
+\par\noindent\fontsize{12pt}{1.3}\selectfont\textbf{Handling input data}
+	
+	\vspace{0.15cm}
+	\par\fontsize{10pt}{1.3}\selectfont{
+		As was mentioned earlier, filter cst.php is designed in an object oriented way. One of total two classes is named \verb|IOHandler()|. Methods of this class are responsible for most of the input data checks - methods check if given parameters are all right, 
+	}
+
+\vspace{0.5cm}
+\par\noindent\fontsize{12pt}{1.3}\selectfont\textbf{Filtering input data}
+	
+	\vspace{0.15cm}
+	\par\fontsize{10pt}{1.3}\selectfont{
+		Methods included in \verb|cstFilter()| class are responsible for practically everything that has something to do with filtering input data. 
+	}
+	
+	\vspace{0.15cm}
+	\par\fontsize{10pt}{1.3}\selectfont{
+		One of the major issues in the project is to correctly remove macros, commentaries, string and character literals. Though this could seem like an easy task for regular expressions, it has proven to be much more complex to solve. In general, regular expressions are not so powerfull tool when there is a need for knowledge of context, which in this case is. Therefore the author decided to use final state machine to solve this issue. 
+	}
+
+	\vspace{0.35cm}
+	\par\noindent\fontsize{11pt}{1.3}\selectfont\textbf{Final State Machine}
+	\vspace{0.15cm}
+	\par\fontsize{10pt}{1.3}\selectfont
+	{
+		Removal of commentaries, macros, character literals and string literals is realised as a final state machine that determines six significant states as follows: \verb|sSTART, sMACRO, sBLOCKCOMMENT, sLINECOMMENT, sSTRING,| \\  \verb|sCHARLIT|. Those states are intentionally named to be self-explanatory.
+	}
+
+	\vspace{0.15cm}
+	\par\fontsize{10pt}{1.3}\selectfont
+	{
+		At the beggining the file content is stored in a string variable and then the string variable is parsed char by char. FSM decides to change or not to change the state in dependence on the character that is read from the string variable. Based on state we enter, different actions are provided - for instance, if the commentary is entered (or is stayed in) the commentary character counter variable value is increased by one. Then the character belonging to the commentary is removed, because for other functions it is required for commentaries to be purged from input.
+	}
+
+	\vspace{0.35cm}
+	\par\noindent\fontsize{11pt}{1.3}\selectfont\textbf{Parameter -w and no FSM}
+	\vspace{0.15cm}
+	\par\fontsize{10pt}{1.3}\selectfont
+	{
+		While every other switch needs commentaries, strings, chars and macros to be removed, -w switch that looks for the specified string even inside those mentioned, there is no need to remove them. That really simplifies the whole task to a need to apply one simple regular expression to count all the appearances. For demonstration of simplicity of the task, the regular expression is lited here: \\ \\
+		\verb|/$options[w]/| \\ \\
+
+		Where \verb|$options[w]| stands for string filter is searching for and \verb|//| stands for delimiters used by \verb|preg_*| function.
+	}
+\end{document}
