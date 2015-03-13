@@ -1,5 +1,0 @@
-abba
-
-abba
-alibbab
-abbaabbabba
