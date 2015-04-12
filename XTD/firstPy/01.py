@@ -1,4 +1,17 @@
 #!/usr/bin/python
-zeme_je_placka = 1;
-if zeme_je_placka:
-	print "Bacha, at z ni nespadnete!"
+
+#XTD:xdusek21
+
+import sys
+#import argparse
+import getopt
+#from xml.dom.minidom import parse
+
+# all of the parameters are contained in sys.argv array
+
+arguments = ""
+for arg in sys.argv[1:]:
+	arguments.join(arg+" ")
+
+#arguments = "".join(sys.argv[1:]);
+print(arguments)
