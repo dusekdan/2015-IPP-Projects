@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<catalog>
+   <library><room id="1">
+   <book id="bk101">
+      <author>Gambardella, Matthew</author>
+      <title>XML Developer's Guide</title>
+      <genre>Computer</genre>
+      <price>44.95</price>
+      <publish_date>2000-10-01</publish_date>
+      <description>An in-depth look at creating applications 
+      with XML.</description>
+   </book></room>
+   <room id="2">
+   <book id="bk102">
+      <author>Ralls, Kim</author>
+      <title>Midnight Rain</title>
+      <genre>Fantasy</genre>
+      <price>5.95</price>
+      <publish_date>2000-12-16</publish_date>
+      <description>A former architect battles corporate zombies, 
+      an evil sorceress, and her own childhood to become queen 
+      of the world.</description>
+   </book></room>
+   </library>
+   <library>
+   <book id="bk103">
+      <author>Corets, Eva</author>
+      <title>Maeve Ascendant</title>
+      <genre>Fantasy</genre>
+      <price>5.95</price>
+      <publish_date>2000-11-17</publish_date>
+      <description>After the collapse of a nanotechnology 
+      society in England, the young survivors lay the 
+      foundation for a new society.</description>
+   </book>
+   <book id="bk104">
+      <author>Corets, Eva</author>
+      <title>Oberon's Legacy</title>
+      <genre>Fantasy</genre>
+      <price>5.95</price>
+      <publish_date>2001-03-10</publish_date>
+      <description>In post-apocalypse England, the mysterious 
+      agent known only as Oberon helps to create a new life 
+      for the inhabitants of London. Sequel to Maeve 
+      Ascendant.</description>
+   </book>
+   <book id="bk111">
+      <author>O'Brien, Tim</author>
+      <title>MSXML3: A Comprehensive Guide</title>
+      <genre>Computer</genre>
+      <price>36.95</price>
+      <publish_date>2000-12-01</publish_date>
+      <description>The Microsoft MSXML3 parser is covered in 
+      detail, with attention to XML DOM interfaces, XSLT processing, 
+      SAX and more.</description>
+   </book>
+   <book id="bk112">
+      <author>Galos, Mike</author>
+      <title>Visual Studio 7: A Comprehensive Guide</title>
+      <genre>Computer</genre>
+      <price>49.95</price>
+      <publish_date>2001-04-16</publish_date>
+      <description>Microsoft Visual Studio 7 is explored in depth,
+      looking at how Visual Basic, Visual C++, C#, and ASP+ are 
+      integrated into a comprehensive development 
+      environment.</description>
+   </book></library>
+</catalog>
+#!/usr/bin/python
+
+#XTD:xdusek21
+
+import os, sys, getopt
+
+######################################################################################################################################################
+
+# kontrola parametru
+
+try:
+	options, remainder = getopt.getopt(sys.argv[1:], ':abg', ['help', 'input=', 'output=', 'header=', 'etc=']);
+except:
+	# Spatne parametry
+	sys.exit(1)
+
+## LIST FORMAT: 0Aset, 1Bset, 2Gset 3Hset, 4InputFile 5OutputFile, 6Header, 7Etc
+optParsed = [False, False, False, False, False, False, False, False]
+uniqCounter = [0, 0, 0, 0, 0, 0, 0, 0]
+
+bPrintHelp = False;
+
+for opt, arg in options:
+	if opt == '-a':
+		optParsed[0] = True;
+		uniqCounter[0] += 1
+
+	if opt == '-b':
+		optParsed[1] = True
+		uniqCounter[1] += 1
+
+	if opt == '-g':
+		optParsed[2] = True
+		uniqCounter[2] += 1
+
+	if opt == '--help':
+		optParsed[3] = True
+		uniqCounter[3] += 1
+
+	if opt == '--input':
+		optParsed[4] = arg
+		uniqCounter[4] += 1
+
+	if opt == '--output':
+		optParsed[5] = arg
+		uniqCounter[5] += 1
+
+	if opt == '--header':
+		optParsed[6] = arg
+		uniqCounter[6] += 1
+
+	if opt == '--etc':
+		optParsed[7] = arg
+		uniqCounter[7] += 1
+
+
+
+# HELP TEST
+if optParsed[3]:
+	if (optParsed[0] != False or optParsed[1] != False or optParsed[2] != False or optParsed[4] != False or optParsed[5] != False or optParsed[6] != False or optParsed[7] != False):
+		#print("D: Parametr Help se nesmi kombinovat s zadnym jinym parametrem!")
+		sys.exit(1)
+	else:
+		bPrintHelp = True;
+
+# OPAKOVANE ZADANI PREPINACE
+if (uniqCounter[0] > 1 or uniqCounter[1] > 1 or uniqCounter[2] >1 or uniqCounter[3] > 1 or uniqCounter[4] > 1 or uniqCounter[5] > 1 or uniqCounter[6] > 1 or uniqCounter[7] > 1):
+	#print("D: Opakovane zadani kterehokoliv z prepinacu neni povoleno.")
+	sys.exit(1)
+
+# Je-li kontrola všech parametrů ukončena, můžeme poskytnout nějaký výstup
+if bPrintHelp:
+	print("Vyvojova verze testovaci napovedy programu XTD.PY, napsal Daniel Dusek, aka xdusek21, ten co se citi byt ukrivden skupinou D letosni neskutecne vydarene, nefer pulsemestralky. ")
+	sys.exit(0);
+
+# Ošetření nezadaných --input a --output
+
+if(optParsed[4] == False):
+	optParsed[4] = sys.stdin;
+
+if(optParsed[5] == False):
+	optParsed[5] = sys.stdout;
+
+
+######################################################################################################################################################
+
+# IMPORTy a příprava na proparsování se skrz
+
+# IMPORT - etree - chyba 101 když neúspěch
+try:
+	import xml.etree.ElementTree as ET 
+	#print("D: xml.etree.ElementTree imported!")
+except:
+	#print("D: Nepodařilo se naimportovat xml.etree.ElementTree jako ET proměnnou!")
+	#print("E: 101")
+	sys.exit(101);
+
+# IMPORT - collections - chyba 101 když neúspěch
+try:
+	from collections import defaultdict;
+	d = defaultdict(list);
+except:
+	#print("D: Nepodařilo se naimportovat defaultdict z collections.");
+	sys.exit(101);
+
+if optParsed[4] != sys.stdin:
+	fullFilePath = os.path.realpath(optParsed[4])
+else:
+	fullFilePath = sys.stdin;
+
+# Otevření a načtení souboru - neb je validita zaručena, jakýkoliv chybný pokus vyhodnocuji jako chybu otevření souboru
+try:
+	xmlTree = ET.parse(fullFilePath)
+	#print("D: Soubor ", fullFilePath, " úspěšně otevřen")
+except:
+	#print("D: Soubor ", fullFilePath, " se nepodařilo otevřít")
+	#print("E: 2")
+	sys.exit(2)
+
+######################################################################################################################################################
+
+temporaryCounter = {};
+
+for elem in xmlTree.iter():
+	if elem.tag == xmlTree.getroot().tag:
+		continue;
+
+	# browsing the subelements
+	for child in elem:
+		
+		# počítač výskytů
+		if child.tag in temporaryCounter:
+			temporaryCounter[child.tag] += 1;
+		else:
+			temporaryCounter[child.tag] = 1;
+
+	tmpCntKeys = temporaryCounter.keys();
+
+	for item in tmpCntKeys:
+		i = 0;
+		while i < temporaryCounter[item]:
+			if temporaryCounter[item] == 1:
+
+				outTagName = str(item)+"_id INT";
+				if outTagName not in d[elem.tag]:
+					d[elem.tag].append(outTagName);
+			else:
+				outTagName = str(item)+""+str(i+1)+"_id INT";
+			i+=1;
+
+	temporaryCounter.clear();
+
+print(d.items());
