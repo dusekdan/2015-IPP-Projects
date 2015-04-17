@@ -1,0 +1,19 @@
+<root>
+	<catalog catalogProperty="catalogProperyValue">
+		<subItem subItemAttr="subItemAttrValue1" subItemAttr2="subItemAttrValue2"></subItem>
+		<subItem2>Text value</subItem2>
+	</catalog>
+	<seid>
+		bla bla
+	</seid>
+	<seid>
+		bla bla
+	</seid>
+	<seid>
+		bla bla
+	</seid>
+	<seid>
+		bla bla
+	</seid>
+	
+</root>
