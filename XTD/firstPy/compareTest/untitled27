@@ -1,0 +1,102 @@
+# Used for counting occurances of foreign key columns
+	temporaryCounter = {};
+
+	# In every iteration the name of table is stored in this list. At the end of the iteration I use it to complement columns from value/foreignkeys
+	tableNames = [];
+
+	# Dictionary of lists. Values of tables stored in here.
+	tableValues = defaultdict(list);
+
+	# Dictionary of dictionaries, attributes of each table stored in here.
+	tableAttributes = {};
+
+
+	# Iterating from the root
+	for elem in xmlTree.iter():
+		# Skipping root element
+		if elem.tag == xmlTree.getroot().tag:
+			continue;
+
+		# Making it lower
+		elem.tag = elem.tag.lower();
+
+		# Storing text values
+		if elem.text:
+			# Only those that are not empty (whitespaces)
+			if not elem.text.isspace():
+				tableValues[elem.tag].append(makeValueNumber(elem.text));
+
+		# If "-a" is not set, storing attribute values
+		if elem.attrib and not optParsed[0]:
+			# Element has attribute already
+			if elem.tag in tableAttributes:
+				for eat in elem.attrib:
+					lceat = eat.lower();
+					if lceat in tableAttributes[elem.tag]:
+						# If element eat exists in tableAttributes, I check if his priority is still the highest
+						if tableAttributes[elem.tag][lceat] < makeValueNumberAttr(elem.attrib[eat]):
+							# If not, I update the value
+							tableAttributes[elem.tag][lceat] = makeValueNumberAttr(elem.attrib[eat]);
+					else:
+						# Element doesn't exist, therefore I create it
+						tableAttributes[elem.tag][lceat] = makeValueNumberAttr(elem.attrib[eat]);
+			else:
+				# Element doesn't have attributes assigned yet - I assign it actual
+				#tableAttributes[elem.tag] = elem.attrib;
+				taKeys = elem.attrib.keys();
+				tatmpdict = {};
+				for tk in taKeys:
+					ltk = tk.lower();
+					tatmpdict[ltk] = elem.attrib[tk];
+
+				tableAttributes[elem.tag] = tatmpdict;
+				
+				for key in tableAttributes[elem.tag]:
+					tableAttributes[elem.tag][key] = makeValueNumberAttr(tableAttributes[elem.tag][key]);
+
+				print(tableAttributes[elem.tag])
+
+
+		# browsing the subelements
+		for child in elem:
+			child.tag = child.tag.lower();
+			# počítač výskytů
+			if child.tag in temporaryCounter:
+				temporaryCounter[child.tag] += 1;
+			else:
+				temporaryCounter[child.tag] = 1;
+
+		# položky které se opakovaly nebo neopakovaly (resp. všichni bezprostřední potomci každé tabulky získané z atributů)
+		tmpCntKeys = temporaryCounter.keys();
+
+
+		for item in tmpCntKeys:
+			i = 0;
+			while i < temporaryCounter[item]:
+				if temporaryCounter[item] == 1:
+					outTagName = str(item)+"_id INT";
+					if outTagName not in d[elem.tag]:
+						d[elem.tag].append(outTagName);
+					if str(item)+"1_id INT" in d[elem.tag]:
+						try:
+							d[elem.tag].remove(str(item)+"_id INT");
+						except ValueError:
+							i = i;
+				else:
+					if optParsed[1] == False:
+						outTagName = str(item)+""+str(i+1)+"_id INT";
+						if outTagName not in d[elem.tag]:
+							d[elem.tag].append(outTagName);
+					else:
+						i+=1;
+						continue;
+				i+=1;
+
+		temporaryCounter.clear();
+
+		tableNames.append(elem.tag);
+
+	for tItem in tableNames:
+		dKeys = d.keys();
+		if tItem not in dKeys:
+			d[tItem] = None;
