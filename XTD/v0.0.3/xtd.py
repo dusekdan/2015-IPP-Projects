@@ -5,13 +5,18 @@
 import os, sys, getopt
 
 ######################################################################################################################################################
+#    ___  _   ___    _   __  __   ___ ___  ___   ___ ___ ___ ___ ___ _  _  ___                                                                       #
+#   | _ \/_\ | _ \  /_\ |  \/  | | _ \ _ \/ _ \ / __| __/ __/ __|_ _| \| |/ __|                                                                      #
+#   |  _/ _ \|   / / _ \| |\/| | |  _/   / (_) | (__| _|\__ \__ \| || .` | (_ |                                                                      #
+#   |_|/_/ \_\_|_\/_/ \_\_|  |_| |_| |_|_\\___/ \___|___|___/___/___|_|\_|\___|                                                                      #
+#                                                                                                                                                    #
+######################################################################################################################################################
 
-# kontrola parametru
-
+# Getopt calling
 try:
 	options, remainder = getopt.getopt(sys.argv[1:], ':abg', ['help', 'input=', 'output=', 'header=', 'etc=']);
 except:
-	# Spatne parametry
+	# EXIT_CODE 1 on incorrect param input
 	sys.exit(1)
 
 ## LIST FORMAT: 0Aset, 1Bset, 2Gset 3Hset, 4InputFile 5OutputFile, 6Header, 7Etc
@@ -119,7 +124,7 @@ except:
 
 ######################################################################################################################################################
 
-# Datové typy
+# Functions for data types determination
 
 
 def makeValueNumber(data):
@@ -178,53 +183,48 @@ def returnTypeNameAttr(data):
 	elif data == 4:
 		return "NVARCHAR";
 
-####
+########################################################################################################################################################
 
+# Used for counting occurances of foreign key columns
 temporaryCounter = {};
-tableNames = [];
-tableValues = defaultdict(list);
-tableAttributes = {};
-#tableAttributes = {} # já neviem uš. zidan.
 
+# In every iteration the name of table is stored in this list. At the end of the iteration I use it to complement columns from value/foreignkeys
+tableNames = [];
+
+# Dictionary of lists. Values of tables stored in here.
+tableValues = defaultdict(list);
+
+# Dictionary of dictionaries, attributes of each table stored in here.
+tableAttributes = {};
+
+
+# Iterating from the root
 for elem in xmlTree.iter():
+	# Skipping root element
 	if elem.tag == xmlTree.getroot().tag:
 		continue;
 
+	# Storing text values
 	if elem.text:
+		# Only those that are not empty (whitespaces)
 		if not elem.text.isspace():
 			tableValues[elem.tag].append(makeValueNumber(elem.text));
 
-	
-
-	"""if elem.attrib:
-		for eat in elem.attrib:
-			if elem.tag in tableAttributes:
-				if eat in tableAttributes[elem.tag]:
-					if makeValueNumberAttr(tableAttributes[elem.tag][eat]) < makeValueNumberAttr(elem.attrib[eat]):
-						tableAttributes[elem.tag][eat] = makeValueNumberAttr(elem.attrib[eat]);
-			else:
-				tableAttributes[elem.tag] = elem.attrib;
-				#tableAttributes[elem.tag] = {key:makeValueNumber(value) for (key,value) in elem.attrib};
-				for key in tableAttributes[elem.tag]:
-					tableAttributes[elem.tag][key] = makeValueNumberAttr(elem.attrib[key]);
-				print("now\n", tableAttributes);
-	else:
-		print(elem.tag," nema attributy");"""
-
+	# If "-a" is not set, storing attribute values
 	if elem.attrib and not optParsed[0]:
-		# what happens if element has an attribute (or more)
+		# Element has attribute already
 		if elem.tag in tableAttributes:
 			for eat in elem.attrib:
 				if eat in tableAttributes[elem.tag]:
-					# existuje-li prvek eat už v tableAttributes, zkontroluji, jestli jeho priorita náhodou není nižší než toho aktuálního
+					# If element eat exists in tableAttributes, I check if his priority is still the highest
 					if tableAttributes[elem.tag][eat] < makeValueNumberAttr(elem.attrib[eat]):
-						# pokud opravdu ta priorita je nižší, použiju novou hodnotu
+						# If not, I update the value
 						tableAttributes[elem.tag][eat] = makeValueNumberAttr(elem.attrib[eat]);
 				else:
-					# pokud prvek neexistuje, opět natvrdo vložím
+					# Element doesn't exist, therefore I create it
 					tableAttributes[elem.tag][eat] = makeValueNumberAttr(elem.attrib[eat]);
 		else:
-			# když neexistuje záznam v tableAttributes pro daný tag, vytvoříme ho s těmi aktuálními (je to poprvé, takže nic neřeším(e))
+			# Element doesn't have attributes assigned yet - I assign it actual
 			tableAttributes[elem.tag] = elem.attrib;
 			for key in tableAttributes[elem.tag]:
 				tableAttributes[elem.tag][key] = makeValueNumberAttr(tableAttributes[elem.tag][key]);
@@ -238,6 +238,10 @@ for elem in xmlTree.iter():
 			temporaryCounter[child.tag] += 1;
 		else:
 			temporaryCounter[child.tag] = 1;
+
+
+	print(temporaryCounter);
+	sys.exit(1);
 
 	# položky které se opakovaly nebo neopakovaly (resp. všichni bezprostřední potomci každé tabulky získané z atributů)
 	tmpCntKeys = temporaryCounter.keys();
@@ -266,17 +270,22 @@ for tItem in tableNames:
 	if tItem not in dKeys:
 		d[tItem] = None;
 
-
-# Accumulation of output string and its formating
+######################################################################################################################################################
+#    ___ _____ ___ ___ _  _  ___     _   ___ ___ _   _ __  __ _   _ _      _ _____ ___ ___  _  _                                                     #
+#   / __|_   _| _ \_ _| \| |/ __|   /_\ / __/ __| | | |  \/  | | | | |    /_\_   _|_ _/ _ \| \| |                                                    #
+#   \__ \ | | |   /| || .` | (_ |  / _ \ (_| (__| |_| | |\/| | |_| | |__ / _ \| |  | | (_) | .` |                                                    #
+#   |___/ |_| |_|_\___|_|\_|\___| /_/ \_\___\___|\___/|_|  |_|\___/|____/_/ \_\_| |___\___/|_|\_|                                                    #
+#                                                                                                                                                    #
+######################################################################################################################################################                                                                                                
 
 # String accumulator
-
 outAcc = "";
 
+# Adding a header if set
 if optParsed[6] != False:
 	outAcc += "--"+ optParsed[6] + "\n\n";
 
-
+# Iteration over all of the tables
 for tabName in d.items():
 	# Table creation part, primary key attached here
 	outAcc += "CREATE TABLE ";
@@ -344,9 +353,3 @@ else:
 	finally:
 		# One way or another, file descriptor should be closed
 		f.close();
-
-
-#print(outAcc);
-"""print(tableAttributes);
-print(tableValues);
-"""
