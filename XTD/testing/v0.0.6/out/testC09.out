@@ -1,0 +1,11 @@
+CREATE TABLE b(
+   prk_b_id INT PRIMARY KEY,
+   value NTEXT
+);
+
+CREATE TABLE a(
+   prk_a_id INT PRIMARY KEY,
+   b_id INT,
+   b NVARCHAR
+);
+

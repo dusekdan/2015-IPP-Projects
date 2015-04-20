@@ -1,0 +1,29 @@
+CREATE TABLE c(
+   prk_c_id INT PRIMARY KEY,
+   z_id INT,
+   x_id INT,
+   y_id INT
+);
+
+CREATE TABLE z(
+   prk_z_id INT PRIMARY KEY
+);
+
+CREATE TABLE y(
+   prk_y_id INT PRIMARY KEY
+);
+
+CREATE TABLE b(
+   prk_b_id INT PRIMARY KEY,
+   a_id INT
+);
+
+CREATE TABLE a(
+   prk_a_id INT PRIMARY KEY,
+   b_id INT
+);
+
+CREATE TABLE x(
+   prk_x_id INT PRIMARY KEY
+);
+

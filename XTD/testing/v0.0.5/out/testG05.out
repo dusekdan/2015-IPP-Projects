@@ -1,0 +1,56 @@
+CREATE TABLE g(
+   prk_g_id INT PRIMARY KEY,
+   fit_id INT
+);
+
+CREATE TABLE c(
+   prk_c_id INT PRIMARY KEY,
+   d_id INT
+);
+
+CREATE TABLE f(
+   prk_f_id INT PRIMARY KEY,
+   g_id INT
+);
+
+CREATE TABLE e(
+   prk_e_id INT PRIMARY KEY,
+   f1_id INT,
+   f2_id INT,
+   f3_id INT
+);
+
+CREATE TABLE z(
+   prk_z_id INT PRIMARY KEY
+);
+
+CREATE TABLE b(
+   prk_b_id INT PRIMARY KEY,
+   c_id INT,
+   x_id INT,
+   y_id INT,
+   z_id INT
+);
+
+CREATE TABLE fit(
+   prk_fit_id INT PRIMARY KEY
+);
+
+CREATE TABLE a(
+   prk_a_id INT PRIMARY KEY,
+   b_id INT
+);
+
+CREATE TABLE x(
+   prk_x_id INT PRIMARY KEY
+);
+
+CREATE TABLE d(
+   prk_d_id INT PRIMARY KEY,
+   e_id INT
+);
+
+CREATE TABLE y(
+   prk_y_id INT PRIMARY KEY
+);
+
