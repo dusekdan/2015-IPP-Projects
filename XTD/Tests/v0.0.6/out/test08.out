@@ -1,0 +1,36 @@
+--Takto pak vypadá hlavička výstupního souboru
+
+CREATE TABLE part(
+   prk_part_id INT PRIMARY KEY,
+   number INT
+);
+
+CREATE TABLE alphabet(
+   prk_alphabet_id INT PRIMARY KEY,
+   part_id INT,
+   a BIT,
+   u BIT,
+   w BIT,
+   g BIT,
+   v BIT,
+   l BIT,
+   r BIT,
+   m BIT,
+   b BIT,
+   j BIT,
+   e BIT,
+   f BIT,
+   d BIT,
+   h BIT,
+   c BIT,
+   n BIT,
+   o BIT,
+   q BIT,
+   k BIT,
+   s BIT,
+   z BIT,
+   i BIT,
+   t BIT,
+   p BIT
+);
+

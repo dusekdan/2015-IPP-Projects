@@ -1,8 +1,0 @@
-[Fatal Error] testG01.out:1:1:Content is not allowed in prolog.
-org.xml.sax.SAXParseException; systemId: file:///home/dan/Desktop/gitProjects/IPP-Project/XTD/testing/v0.0.6/out/testG01.out; lineNumber: 1; columnNumber: 1; Content is not allowed in prolog.
-	at com.sun.org.apache.xerces.internal.parsers.AbstractSAXParser.parse(AbstractSAXParser.java:1239)
-	at com.sun.org.apache.xerces.internal.jaxp.SAXParserImpl$JAXPSAXParser.parse(SAXParserImpl.java:648)
-	at com.a7soft.examxml.ExamXMLHandler.loadXML(ExamXMLHandler.java:111)
-	at com.a7soft.examxml.ExamXML.loadXML(ExamXML.java:246)
-	at com.a7soft.examxml.ExamXML.compare(ExamXML.java:213)
-	at com.a7soft.examxml.ExamXML.main(ExamXML.java:383)

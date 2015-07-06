@@ -1,0 +1,87 @@
+\documentclass[10pt, a4paper]{report}
+\usepackage[left=2cm,text={17cm, 24cm},top=3cm]{geometry}
+\usepackage{times}
+
+\linespread{1.3}
+\vspace*{-2cm}
+
+
+\begin{document}
+\noindent{\fontsize{12pt}{1.3}\selectfont Task documentation XTD: \textbf{XML2DDL in Python 3} for IPP 2014/2015\\Name and surname: \textbf{Daniel Dusek}\\Login: \textbf{xdusek21}}
+
+\vspace{0.5cm}
+	\par \fontsize{10pt}{1.3}\selectfont Whole script uses only python built-in libraries. Namely \verb|sys|, \verb|os|, \verb|getopt| and \verb|xml.etree.ElementTree|. Script doesn't use any other supportive library/class written by~author.
+
+\vspace{0.5cm}
+\par\noindent\fontsize{12pt}{1.3}\selectfont\textbf{Design of XTD filter}
+	
+	\vspace{0.15cm}
+	\par \fontsize{10pt}{1.3}\selectfont As the~task requires, the filter takes XML input file, parses through it and based on its structure, creates a~responding DDL file on user specified output. The content of~the~DDL file contains SQL queries that can be used to~generate table structure in~database - based solely on~XML file's structure.
+
+
+	\vspace{0.35cm}
+	\par\noindent\fontsize{11pt}{1.3}\selectfont\textbf{Library getopt and parameter processing}
+	\vspace{0.15cm}
+	\par \fontsize{10pt}{1.3}\selectfont Imaginary first base of~the~project is to handle and process parameters that can be given on~filter calling by user. For~this very purpose served the standard \verb|getopt| library which simplified the parameter processing and~took care of~possibly false variations of~parameters.
+
+	\vspace{0.35cm}
+	\par\noindent\fontsize{11pt}{1.3}\selectfont\textbf{Libraries os, sys}
+	\vspace{0.15cm}
+	\par \fontsize{10pt}{1.3}\selectfont Two the most basic libraries used in~this project were library \verb|os| that provides script with various operating system functions and interfaces. Notable function is definively \verb|os.path.realpath()| that significantly simplifies creating a~path to~file that is on~input or the output. Function takes filename as a~parameter and returns the realpath from the root, independently on the type (\textit{relative} or \textit{absolute}) path that has been given to it.
+	\par \fontsize{10pt}{1.3}\selectfont Second mentioned library \verb|sys| was in~the~project very helpful when it came to working with \textit{parameters} or \textit{program terminations}, since it brings system-specific parameters and functions to the script.
+
+\vspace{0.5cm}
+\par\noindent\fontsize{12pt}{1.3}\selectfont\textbf{Datatype recognition - implementation}
+
+	\vspace{0.15cm}
+	\par\fontsize{10pt}{1.3}\selectfont{
+	Since task specification requires proper recognition of~data types that can be found between two elements (as \textit{text value}) or in the attribute, it had to be implemented. There are two pairs of~functions in the script, \\both named \verb|makeValuenumber| and \verb|returnTypeName| with postfixes \verb|Text| and \verb|Attr|. As the names in this moment suggest, they are used to identify data type within text or attribute.
+	}
+	\par\fontsize{10pt}{1.3}\selectfont{
+	The algorhitm on which are recognition functions based is quite simple. At first, both of~them receives string which they instantly convert to lower-case. Then they compare the string with values acceptable by type BIT and if case it fits, they return code number signalising that type was recognized. If the recognition fails in the first step, functions proceed to step number too, therefore trying to parse as a \verb|FLOAT|. In case of~failure, trial to parse to \verb|FLOAT| is done, in case of~failure, it is considered string (\verb|NVARCHAR| or \verb|NTEXT|, depends on function).
+	}
+	\par\fontsize{10pt}{1.3}\selectfont{
+	Second pair of~functions then recognizes the name of~data type, which is printed on the output.
+	}
+
+\vspace{0.5cm}
+\par\noindent\fontsize{12pt}{1.3}\selectfont\textbf{Implementation of~-a and --header switches functionability}
+	
+	\vspace{0.15cm}
+	\par\fontsize{10pt}{1.3}\selectfont{
+		Switch \verb|-a| is implemented as one-conditional addition to the rest of~working code. If the parameter -a is set, it skips the part where data from attributes are extracted and based on that are created columns. 
+	}
+	\par\fontsize{10pt}{1.3}\selectfont{
+		As it goes for \verb|--header| switch it is once again a one conditional additing to the output string generation, where data from \verb|--header| switch are included in the output before the rest of~it.
+	}
+
+\vspace{0.5cm}
+\par\noindent\fontsize{12pt}{1.3}\selectfont\textbf{Implementation of~-b and --etc switches functionability}
+	\vspace{0.15cm}
+	\par\fontsize{10pt}{1.3}\selectfont{
+		Switches \verb|-b| and \verb|--etc| were a bit more complicated in ways of~implementation. 
+	}
+	\par\fontsize{10pt}{1.3}\selectfont{
+		Given by task specification, \verb|--etc| switch reduces the maximal count of~columns that will be created from same name subelements to be less than \verb|n| that is specified by user that runs the filter. This is in the code realized by condition and loop that every iteration over child elements checks if the \verb|n| number was exceeded or not. In case it was, loop deletes all the generated previous elements of~given name in parent element and creates a new one named as is specified by task specification.
+	}
+	\par\fontsize{10pt}{1.3}\selectfont{
+		Similar scenario works for \verb|-b|, script completely ignores other occurences of~the element with same name.
+	}
+
+\vspace{0.5cm}
+\par\noindent\fontsize{12pt}{1.3}\selectfont\textbf{Conflicts}
+	\vspace{0.15cm}
+	\par\fontsize{10pt}{1.3}\selectfont
+	{
+	Since it is specified that any column generated from subelement will be name in format \verb|subelement_id|, if attribute named \verb|subelement_id| occurs, conflict occurs as well. This is handled by program termination with exit code \verb|90|.
+	}
+
+\vspace{0.5cm}
+\par\noindent\fontsize{12pt}{1.3}\selectfont\textbf{Parameter -g implementation}
+	
+	\vspace{0.15cm}
+	\par\fontsize{10pt}{1.3}\selectfont{
+	Switch \verb|-g| that was supposed to convert DDL to XML representing relations between them was not impemented because of~poor time management reasons. 
+	}
+
+\end{document}

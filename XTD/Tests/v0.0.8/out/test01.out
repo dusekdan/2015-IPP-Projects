@@ -1,0 +1,30 @@
+Program:
+	 xtd.py
+Author:
+	 Daniel Dusek (xdusek21) <dusekdan@gmail.com>
+Usage:
+	 python3 xtd.py --help | [--header="Header string"] [--input=filename] [--output=filename] [--etc=number | -b] [-a]
+
+Parameters:
+
+	--help 			Shows help on screen.
+
+	--header		From the specified strint that is passed to this
+				switch makes a SQL commented head for output file, ended 
+				with double line-break.
+
+	--input			Specifies what input file is to be processed
+
+	--output		Specifies output file for skript output
+
+	--etc=n			n>=0, specifies max. count of columns
+				created from same-name elements.
+
+	-b			Can not be combined with --etc. Only one
+				column for every element is created. No duplicates.
+
+	-a			No columns generated from elements attributes.
+
+	-g			Not implemented. Was supposed to convert DDL to XML.
+
+
