@@ -1,4 +1,4 @@
-IPP Project, academic year 2014/2015
+IPP Projects, academic year 2014/2015
 =====
 Principles of Programing Languages - Project in PHP &amp; Python
 
